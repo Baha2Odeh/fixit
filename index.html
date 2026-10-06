@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <title>Fixit</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <header class="topbar">
+      <h1>Fixit</h1>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>Provider</h2>
+        <div class="grid">
+          <label>
+            <span>Provider</span>
+            <select id="provider">
+              <option value="anthropic">Anthropic (Claude)</option>
+              <option value="openai">OpenAI (ChatGPT)</option>
+              <option value="gemini">Google (Gemini)</option>
+            </select>
+          </label>
+          <label>
+            <span>Model</span>
+            <input id="model" spellcheck="false" autocomplete="off" />
+          </label>
+        </div>
+
+        <label>
+          <span>API key</span>
+          <div class="inline">
+            <input id="api-key" type="password" spellcheck="false" autocomplete="off" />
+            <button id="save-key" type="button">Save key</button>
+          </div>
+          <small id="key-hint"></small>
+        </label>
+
+        <details>
+          <summary>Advanced</summary>
+          <label>
+            <span>Base URL (optional)</span>
+            <input id="base-url" spellcheck="false" autocomplete="off"
+                   placeholder="Only for OpenAI-compatible servers, e.g. http://localhost:11434/v1" />
+          </label>
+          <label class="check">
+            <input id="restore-clipboard" type="checkbox" />
+            <span>Put my original clipboard back after pasting the result</span>
+          </label>
+        </details>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Presets</h2>
+          <button id="add-preset" type="button">Add preset</button>
+        </div>
+        <p class="muted">
+          Each preset has its own prompt and hotkey. Select text anywhere, press the hotkey,
+          and the selection is replaced. With nothing selected, the clipboard text is fixed and
+          the result is copied instead.
+        </p>
+        <div id="presets"></div>
+      </section>
+
+      <section class="card">
+        <h2>Try it</h2>
+        <p class="muted">
+          Test your key and prompt without the hotkey. Uses your <em>saved</em> provider settings.
+        </p>
+        <div class="grid">
+          <label>
+            <span>Preset</span>
+            <select id="try-preset"></select>
+          </label>
+        </div>
+        <label>
+          <span>Sample text</span>
+          <textarea id="try-input" rows="3" dir="auto">i has went to the store yesterday and buyed three apple</textarea>
+        </label>
+        <div class="inline">
+          <button id="try-run" type="button">Run</button>
+          <span id="try-state" class="muted"></span>
+        </div>
+        <pre id="try-output" dir="auto" hidden></pre>
+      </section>
+    </main>
+
+    <footer class="savebar">
+      <span id="save-msg" role="status" aria-live="polite"></span>
+      <button id="save" type="button" class="primary" disabled>Save settings</button>
+    </footer>
+  </body>
+</html>
