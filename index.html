@@ -15,6 +15,14 @@
     </header>
 
     <main>
+      <div id="permission-banner" class="banner" role="alert" hidden>
+        <div>
+          <strong>Permission needed</strong>
+          <span>Fixit needs Accessibility access to copy and paste for you.</span>
+        </div>
+        <button id="grant-access" type="button" class="primary">Grant access</button>
+      </div>
+
       <section class="card">
         <h2>Provider</h2>
         <div class="grid">
@@ -47,6 +55,10 @@
             <span>Base URL (optional)</span>
             <input id="base-url" spellcheck="false" autocomplete="off"
                    placeholder="Only for OpenAI-compatible servers, e.g. http://localhost:11434/v1" />
+          </label>
+          <label class="check">
+            <input id="notify-success" type="checkbox" />
+            <span>Show a notification when a fix finishes (errors always notify)</span>
           </label>
           <label class="check">
             <input id="restore-clipboard" type="checkbox" />

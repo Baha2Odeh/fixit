@@ -1,3 +1,4 @@
+mod accessibility;
 mod flow;
 mod providers;
 mod settings;
@@ -60,6 +61,22 @@ fn has_api_key(provider: Provider) -> Result<bool, String> {
     settings::get_api_key(provider).map(|k| k.is_some())
 }
 
+/// True when Fixit may send keystrokes to other apps (always true off macOS).
+#[tauri::command]
+fn accessibility_status() -> bool {
+    accessibility::is_granted()
+}
+
+/// Shows the system permission dialog and opens the right System Settings page.
+#[tauri::command]
+fn request_accessibility(app: AppHandle) -> bool {
+    if accessibility::request() {
+        return true;
+    }
+    accessibility::open_settings(&app);
+    false
+}
+
 /// While the UI records a new shortcut, the live hotkeys must not fire.
 #[tauri::command]
 fn pause_hotkeys(app: AppHandle) -> Result<(), String> {
@@ -109,6 +126,8 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(AppState {
             busy: AtomicBool::new(false),
             http: reqwest::Client::new(),
@@ -119,6 +138,12 @@ pub fn run() {
             if let Err(e) = register_hotkeys(handle, &settings) {
                 // Don't crash on a bad saved hotkey; the settings UI can fix it.
                 eprintln!("fixit: {e}");
+            }
+
+            // Ask for the Accessibility permission up front, so the user doesn't
+            // find out only after the first hotkey press fails.
+            if !accessibility::is_granted() {
+                accessibility::request();
             }
 
             tray::init(handle)?;
@@ -153,6 +178,8 @@ pub fn run() {
             save_settings,
             set_api_key,
             has_api_key,
+            accessibility_status,
+            request_accessibility,
             pause_hotkeys,
             resume_hotkeys,
             default_models,

@@ -28,6 +28,8 @@ pub struct Settings {
     pub base_url: Option<String>,
     /// Put the original clipboard back after pasting the result.
     pub restore_clipboard: bool,
+    /// Show a notification when a fix finishes. Errors always notify.
+    pub notify_success: bool,
     pub presets: Vec<Preset>,
 }
 
@@ -38,6 +40,7 @@ impl Default for Settings {
             model: Provider::Anthropic.default_model().to_string(),
             base_url: None,
             restore_clipboard: false,
+            notify_success: true,
             presets: vec![Preset {
                 id: "grammar".into(),
                 name: "Fix grammar".into(),

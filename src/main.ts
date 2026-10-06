@@ -16,6 +16,7 @@ interface Settings {
   model: string;
   base_url: string | null;
   restore_clipboard: boolean;
+  notify_success: boolean;
   presets: Preset[];
 }
 
@@ -34,6 +35,9 @@ const els = {
   keyHint: $("key-hint"),
   baseUrl: $<HTMLInputElement>("base-url"),
   restore: $<HTMLInputElement>("restore-clipboard"),
+  notifySuccess: $<HTMLInputElement>("notify-success"),
+  banner: $("permission-banner"),
+  grantAccess: $<HTMLButtonElement>("grant-access"),
   presets: $("presets"),
   addPreset: $<HTMLButtonElement>("add-preset"),
   tryPreset: $<HTMLSelectElement>("try-preset"),
@@ -81,6 +85,7 @@ function renderProvider() {
   els.model.placeholder = defaults.get(settings.provider) ?? "";
   els.baseUrl.value = settings.base_url ?? "";
   els.restore.checked = settings.restore_clipboard;
+  els.notifySuccess.checked = settings.notify_success;
   refreshKeyHint();
 }
 
@@ -108,6 +113,11 @@ els.baseUrl.addEventListener("input", () => {
 });
 els.restore.addEventListener("change", () => {
   settings.restore_clipboard = els.restore.checked;
+  setDirty(true);
+});
+
+els.notifySuccess.addEventListener("change", () => {
+  settings.notify_success = els.notifySuccess.checked;
   setDirty(true);
 });
 
@@ -323,6 +333,24 @@ function showStatus(s: Status) {
   } else els.status.textContent = s.message;
 }
 
+// ---------- accessibility permission (macOS) ----------
+
+async function refreshPermission() {
+  try {
+    els.banner.hidden = await invoke<boolean>("accessibility_status");
+  } catch {
+    els.banner.hidden = true; // can't tell, so don't nag
+  }
+}
+
+els.grantAccess.addEventListener("click", async () => {
+  // Shows the system dialog and opens the right System Settings page.
+  await invoke("request_accessibility").catch(() => {});
+  refreshPermission();
+});
+// The user grants access in System Settings, then comes back to this window.
+window.addEventListener("focus", refreshPermission);
+
 // ---------- boot ----------
 
 async function boot() {
@@ -340,6 +368,7 @@ async function boot() {
     defaults = new Map(models);
     renderProvider();
     renderPresets();
+    refreshPermission();
   } catch (e) {
     flash(els.saveMsg, `Could not load settings: ${errText(e)}`, "err");
   }

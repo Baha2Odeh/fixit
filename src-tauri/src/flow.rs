@@ -11,9 +11,10 @@ use enigo::{Direction, Enigo, Key, Keyboard, Settings as EnigoSettings};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
+use tauri_plugin_notification::NotificationExt;
 use tokio::{sync::oneshot, time::sleep};
 
-use crate::{providers, settings, AppState};
+use crate::{accessibility, providers, settings, AppState};
 
 // Raw virtual keycodes, so we never touch the keyboard-layout APIs
 // (those crash when called off the main thread on macOS).
@@ -43,7 +44,29 @@ pub enum Status {
 fn emit(app: &AppHandle, status: Status) {
     // The window is usually hidden, so the tray is the main feedback channel.
     crate::tray::set_status(app, &status);
+    notify(app, &status);
     let _ = app.emit("fixit:status", status);
+}
+
+/// A small system notification when a fix finishes. Errors always show one;
+/// success only if the user left that enabled.
+fn notify(app: &AppHandle, status: &Status) {
+    let body = match status {
+        Status::Working => return,
+        Status::Done { pasted } => {
+            let wanted = settings::load(app).map(|s| s.notify_success).unwrap_or(true);
+            if !wanted {
+                return;
+            }
+            if *pasted { "Fixed. The selection was replaced." } else { "Fixed. Copied to your clipboard." }
+                .to_string()
+        }
+        Status::Error { message } => {
+            let short: String = message.chars().take(200).collect();
+            format!("Couldn't fix the text: {short}")
+        }
+    };
+    let _ = app.notification().builder().title("Fixit").body(body).show();
 }
 
 pub async fn run(app: AppHandle, preset_id: String) {
@@ -73,7 +96,11 @@ async fn run_inner(app: &AppHandle, preset_id: &str) -> Result<bool, String> {
         .ok_or("Preset not found")?;
     let api_key = settings::get_api_key(settings.provider)?
         .ok_or_else(|| format!("No API key saved for {}", settings.provider.as_str()))?;
-    ensure_accessibility()?;
+    if !accessibility::is_granted() {
+        // Show the system permission dialog instead of only failing.
+        accessibility::request();
+        return Err(accessibility::MISSING_MESSAGE.into());
+    }
 
     let original = app.clipboard().read_text().ok();
     let (text, had_selection) = capture(app, original.as_deref()).await?;
@@ -188,23 +215,3 @@ fn press_combo(key: u32) -> Result<(), String> {
     released.map_err(|e| e.to_string())
 }
 
-#[cfg(target_os = "macos")]
-fn ensure_accessibility() -> Result<(), String> {
-    #[link(name = "ApplicationServices", kind = "framework")]
-    extern "C" {
-        fn AXIsProcessTrusted() -> bool;
-    }
-    // SAFETY: plain C function with no arguments.
-    if unsafe { AXIsProcessTrusted() } {
-        Ok(())
-    } else {
-        Err("Fixit needs Accessibility permission to copy and paste. Enable it in \
-             System Settings > Privacy & Security > Accessibility, then try again."
-            .into())
-    }
-}
-
-#[cfg(not(target_os = "macos"))]
-fn ensure_accessibility() -> Result<(), String> {
-    Ok(())
-}

@@ -16,7 +16,7 @@ A small menu-bar app that fixes grammar with your own AI API key. Select text in
 
 If nothing is selected, Fixit fixes the text already on your clipboard and only copies the result.
 
-The tray icon shows progress (and errors) while the settings window is closed.
+The tray icon shows progress while the settings window is closed, and a small notification tells you when a fix finished or failed. Success notifications can be turned off in Settings > Advanced; errors always notify.
 
 ## Install
 
@@ -24,8 +24,7 @@ Download the installer for your system from the [Releases](../../releases) page.
 
 ### macOS
 
-Fixit needs **Accessibility** permission so it can copy and paste for you:
-*System Settings > Privacy & Security > Accessibility*, then switch Fixit on.
+Fixit needs **Accessibility** permission so it can copy and paste for you. It asks on first launch: choose **Open System Settings** in the dialog and switch Fixit on. If you missed it, the settings window shows a **Grant access** button until the permission is given. (Manually: *System Settings > Privacy & Security > Accessibility*.)
 
 The builds are not notarized, so macOS may say the app is damaged or from an unidentified developer. Right-click the app and choose **Open**, or run:
 

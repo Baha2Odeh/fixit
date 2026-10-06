@@ -9,6 +9,7 @@ export function installMock() {
     model: "claude-haiku-4-5-20251001",
     base_url: null as string | null,
     restore_clipboard: false,
+    notify_success: true,
     presets: [
       {
         id: "grammar",
@@ -19,6 +20,8 @@ export function installMock() {
     ],
   };
   const keys = new Set<string>();
+  // Append ?noaccess to the URL to preview the permission banner.
+  let accessGranted = !location.search.includes("noaccess");
 
   mockIPC(
     (cmd, args) => {
@@ -49,6 +52,11 @@ export function installMock() {
         case "try_fix":
           if (!keys.has(settings.provider)) throw `No API key saved for ${settings.provider}`;
           return new Promise((r) => setTimeout(() => r(`(mock) ${a.text}`), 600));
+        case "accessibility_status":
+          return accessGranted;
+        case "request_accessibility":
+          accessGranted = true;
+          return true;
         case "pause_hotkeys":
         case "resume_hotkeys":
           return null;

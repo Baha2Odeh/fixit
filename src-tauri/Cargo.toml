@@ -22,6 +22,7 @@ tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-opener = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-clipboard-manager = "2"
+tauri-plugin-notification = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Simulates Cmd/Ctrl+C and Cmd/Ctrl+V in the focused app.
@@ -33,6 +34,10 @@ keyring = { version = "3", features = ["apple-native", "windows-native"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 tokio = { version = "1", features = ["sync", "time"] }
 
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# Used for the Accessibility permission prompt (already in the tree via tauri).
+core-foundation = "0.10"
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]

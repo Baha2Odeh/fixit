@@ -148,3 +148,19 @@ details summary { cursor: pointer; color: var(--muted); margin-bottom: 10px; }
   background: var(--bg);
   border-top: 1px solid var(--border);
 }
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--err);
+  border-radius: 12px;
+}
+.banner[hidden] { display: none; }
+.banner strong { display: block; }
+.banner span { color: var(--muted); }
+.banner button { flex-shrink: 0; white-space: nowrap; }
