@@ -1,6 +1,6 @@
 [package]
 name = "fixit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Hotkey grammar fixer using your own AI API key"
 authors = ["you"]
 edition = "2021"
